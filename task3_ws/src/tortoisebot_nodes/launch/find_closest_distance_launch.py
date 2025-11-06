@@ -35,7 +35,7 @@ def generate_launch_description():
         actions=[
 
             Node(
-        package='tortoisebot_filters',
+        package='tortoisebot_nodes',
         name='lidar_closest_distance',
         executable='find_closest_object_distance',
         output='screen',
@@ -49,7 +49,7 @@ def generate_launch_description():
         actions=[
 
             Node(
-        package='tortoisebot_filters',
+        package='tortoisebot_nodes',
         name='lidar_closest_distance',
         executable='find_distance_using_laser_filters',
         output='screen',

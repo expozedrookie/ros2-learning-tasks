@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
-from math import isinf,isnan,pi,degrees,exp
+from math import isinf,isnan,pi,exp
 
 
 
@@ -14,69 +14,67 @@ class BallFollowNode(Node):
             LaserScan,
             'scan_filtered',
             self.listener_callback,
-            10) # subscribing to /scan
-        self.publisher = self.create_publisher(Twist,'cmd_vel',10) #publishing to /closest_object_distance
+            10) # subscribing to /scan_filtered
+        self.publisher = self.create_publisher(Twist,'cmd_vel',10) #publishing to /cmd_vel
 
         self.msgData=None
-        self.safeDistanceObject=1
+        self.safeDistanceObject=1.05
         
         
         self.get_logger().warn('[DEBUG][BALL_FOLLOW_NODE] STARTED')
         self.get_logger().info('[DEBUG][BALL_FOLLOW_NODE] SUBSCRIBED TO /scan_filtered')
         self.get_logger().info('[DEBUG][BALL_FOLLOW_NODE] Publishing to /cmd_vel')
-        
-
-        
-    
-
-
 
     def findClosestObjectDirection(self,listVar,angMin,angMax,angInc):
         closestValue=min(listVar)
         closestIndex=listVar.index(closestValue)
         targetDir=angMin+closestIndex*angInc
         
-        if closestValue==float('inf'):
-            closestValue=self.safeDistanceObject
+        # if closestValue==float('inf'):
+            # closestValue=self.safeDistanceObject
             
         return [targetDir,closestValue]
     
     
-    def moveRobot(self,angularTarget=0.0,LinearTarget=0.0):
+    def moveRobot(self,angularTarget=0.0,LinearTarget=0.0,stopRobot=False):
         (angularVel,linearVel)=(0.0,0.0)
+        if stopRobot==True:
+            return (angularVel,linearVel)
+            
         distDiff=LinearTarget-self.safeDistanceObject
         
+        gainLinearVel=2
+        gainAngularVel=5
 
         if angularTarget!=0.0:
-            angularVel=(1.5*angularTarget)
-        if distDiff>0.025:
-            linearVel=0.5*distDiff*(1-(abs(angularVel))/pi)
-        elif distDiff<0.0:# and -0.25<angularTarget<0.25:
-            linearVel=2.5*distDiff
-        else:
-            linearVel=0.0
-            
-        
-        # angularVel = max(-max_ang, min(max_ang, angularVel))
-        # # --- Smooth linear velocity ---
-        # # # Reduce speed as angular error grows
-        # lin_scale = max(0.0, 1.0 - abs(angularTarget))
-        # if distDiff > 0.02:
-        #     linearVel = k_lin * distDiff * lin_scale
-        # elif distDiff < 0.0:
-        #     linearVel = 0.5 * distDiff  # approach gently
-        # # Limit speeds
-        # linearVel = max(-max_lin, min(max_lin, linearVel))
+            angularVel=(gainAngularVel*angularTarget/pi)
+        if distDiff!=0.0 :
+            linearVel=gainLinearVel*((2/(1+exp(-4*distDiff)))-1)*(1-abs(angularTarget/pi))
+            # linearVel=gainLinearVel*(distDiff)*(1-abs(angularTarget/pi))            
             
         dirValue='Turning Left' if angularVel>0.0 else 'Turning Right'
         speedValue='Going forward' if linearVel>0.0 else 'Going Reverse'
-        # # VELOCITY LIMITER
-        # linearVel=min(1.0,linearVel)
-        # linearVel=max(-1.0,linearVel)
-        # angularVel=min(1.0,angularVel)
-        # self.get_logger().info('[DEBUG][BALL_FOLLOW_NODE] %s ' %dirValue)
-        # self.get_logger().info('[DEBUG][BALL_FOLLOW_NODE] %s ' %speedValue)
-        self.get_logger().info('[DEBUG][BALL_FOLLOW_NODE] %s %s' %(angularTarget,LinearTarget))
+        
+        # DEADBAND VELOCITY
+        if -0.05<linearVel<0.05:
+            linearVel=0.0
+        if -0.1<angularVel<0.1:
+            angularVel=0.0
+
+
+        # VELOCITY LIMITER
+        linearVel=min(2.0,linearVel)
+        linearVel=max(-2.5,linearVel)
+        angularVel=min(2.0,angularVel)
+        angularVel=max(-2.0,angularVel)
+        if linearVel in [2.0,-2.5] or angularVel in [2.0,-2.0]:
+            if linearVel in [2.0,-3]:
+                limiterName='LINEAR'
+            if angularVel in [2.0,-2.0]:
+                limiterName='LINEAR'
+            self.get_logger().warn('[DEBUG][BALL_FOLLOW_NODE] LIMITER TRIGGERED : %s'%limiterName)
+        self.get_logger().debug('[DEBUG][BALL_FOLLOW_NODE] %s %s' %(dirValue,speedValue))
+        
         return (angularVel,linearVel)
     
     
@@ -99,15 +97,17 @@ class BallFollowNode(Node):
 
         self.targetAngle=0.0
         self.resultVariable=0.0
+        
         self.noObjectFlag=False
 
         if infCount == len(distanceList):
             self.noObjectFlag=True
+            self.stopRobot()
         else:
             objDistDir=self.findClosestObjectDirection(distanceList,minSensorAngle,maxSensorAngle,angleIncrement)
             self.targetAngle=objDistDir[0]
             self.resultVariable=objDistDir[1]
-        self.cmdvel_callback()
+            self.cmdvel_callback()
     
     def cmdvel_callback(self):
 
@@ -115,19 +115,17 @@ class BallFollowNode(Node):
             self.get_logger().warn('[DEBUG][BALL_FOLLOW_NODE] NO SCAN DATA RECIEVED')
             return
         outputCmdVel=Twist()
-        resultMove=self.moveRobot(0.0,self.safeDistanceObject)
         if self.noObjectFlag==False:
             resultMove=self.moveRobot(self.targetAngle,self.resultVariable)
-        
-        outputCmdVel.angular.z=resultMove[0]
-        outputCmdVel.linear.x=resultMove[1]
-        
-        
-        self.publisher.publish(outputCmdVel)
-        # self.get_logger().info('[DEBUG][BALL_FOLLOW_NODE] Dir : %f' %self.targetAngle)
-        # self.get_logger().info('[DEBUG][BALL_FOLLOW_NODE] Dist: %f' %self.resultVariable)
-
-
+            self.get_logger().warn('[DEBUG][BALL_FOLLOW_NODE] NO SCAN DATA RECIEVED %s %s'%(resultMove))
+            outputCmdVel.angular.z=resultMove[0]
+            outputCmdVel.linear.x=resultMove[1]
+            self.publisher.publish(outputCmdVel)
+        else:
+            outputCmdVel.angular.z=0.0
+            outputCmdVel.linear.x=0.0
+            self.publisher.publish(outputCmdVel)
+            
 
 def main(args=None):
     import subprocess
@@ -154,4 +152,3 @@ def main(args=None):
 
 if __name__=='__main__':
     main()
-

@@ -34,7 +34,7 @@ def generate_launch_description():
         actions=[
 
             Node(
-        package='tortoisebot_actions',
+        package='tortoisebot_nodes',
         name='following_closest_object',
         executable='follow_the_closest_object',
         output='screen',

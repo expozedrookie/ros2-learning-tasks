@@ -13,7 +13,7 @@ def generate_launch_description():
     urdf_path=LaunchConfiguration('urdf_path', default=PathJoinSubstitution([FindPackageShare('tortoisebot_description'),'models', 'tortoisebot_Task2.urdf']))
     urdf_content=FileContent(urdf_path)
     
-    world_location=LaunchConfiguration('world_path', default=PathJoinSubstitution([
+    world_path=LaunchConfiguration('world_path', default=PathJoinSubstitution([
         FindPackageShare('tortoisebot_gazebo'), 'worlds', 'empty_world.sdf'
     ]))
     rviz_config=LaunchConfiguration('rviz_file', default=PathJoinSubstitution([FindPackageShare('tortoisebot_description').find('tortoisebot_description'),'config', 'rviz.rviz']))
@@ -31,7 +31,7 @@ def generate_launch_description():
             ])
         ]),
         launch_arguments={
-            'gz_args':['-r ',world_location],
+            'gz_args':['-r ',world_path],
             'on_exit_shutdown':'true'
             }.items()
     )

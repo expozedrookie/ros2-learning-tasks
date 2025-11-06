@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, LogInfo
+from launch.actions import IncludeLaunchDescription, LogInfo,TimerAction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution,FileContent
 from launch_ros.substitutions import FindPackageShare
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -16,7 +16,7 @@ def generate_launch_description():
     # sphere_path=PathJoinSubstitution([FindPackageShare('tortoisebot_description'),'models', 'moving_sphere.sdf'])
     
     
-    world_location=PathJoinSubstitution([FindPackageShare('tortoisebot_gazebo'),'worlds', 'moving_sphere_world.sdf'])
+    world_location=LaunchConfiguration('world_path',default=PathJoinSubstitution([FindPackageShare('tortoisebot_gazebo'),'worlds', 'slow_moving_sphere.sdf']))
     # world_location=PathJoinSubstitution([FindPackageShare('tortoisebot_description'),'models', 'moving_square.sdf'])
     rviz_config=LaunchConfiguration('rviz_file', default=PathJoinSubstitution([FindPackageShare('tortoisebot_description').find('tortoisebot_description'),'config', 'rviz.rviz']))
     
@@ -52,8 +52,16 @@ def generate_launch_description():
             output='screen'
             )
 
-    start_follow_script =Node(
-        package='tortoisebot_actions',
+#     start_follow_script =TimerAction(
+#         period=1.0,
+#         actions=[Node(
+#         package='tortoisebot_nodes',
+# 		executable='follow_the_closest_object',
+# 		arguments=[],
+# 	output='screen'
+#   )])
+    start_follow_script=Node(
+        package='tortoisebot_nodes',
 		executable='follow_the_closest_object',
 		arguments=[],
 	output='screen'
@@ -87,9 +95,9 @@ def generate_launch_description():
     return LaunchDescription([
         
         start_gazebo_world,
+        gazebo_ros_bridge,
         create_bot_entity,
         rviz_launch_file,
-        gazebo_ros_bridge,
         start_median_filter,
         start_follow_script,
 

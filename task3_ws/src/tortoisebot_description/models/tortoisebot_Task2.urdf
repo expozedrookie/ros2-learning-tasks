@@ -49,6 +49,8 @@
     <origin rpy="0 0 0" xyz="0.3 0 0"/>
   </joint>
 
+  
+
   <link name="front_wheel">
     <visual>
       <geometry>
@@ -116,6 +118,7 @@
       <inertia ixx="5.1458e-5" iyy="5.1458e-5" izz="6.125e-5" ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
+  
 
   <joint name="left_wheel_joint" type="continuous">
     <axis xyz="0 0 1"/>
@@ -153,12 +156,14 @@
 <plugin name="gz::sim::systems::DiffDrive" filename="gz-sim-diff-drive-system">
 <left_joint>left_wheel_joint</left_joint>
 <right_joint>right_wheel_joint</right_joint>
-<max_linear_acceleration>10</max_linear_acceleration>
+<max_linear_acceleration>100</max_linear_acceleration>
+<max_angular_acceleration>100</max_angular_acceleration>
 <wheel_separation>0.25</wheel_separation>
 <wheel_radius>0.035</wheel_radius>
 <odom_publish_frequency>1</odom_publish_frequency>
 <topic>cmd_vel</topic>
 <tf_topic>/tf</tf_topic>
+<publish_odom_tf>true</publish_odom_tf>
 <odom_topic>odom</odom_topic>
 <frame_id>odom</frame_id>
 <child_frame_id>base_footprint</child_frame_id>
