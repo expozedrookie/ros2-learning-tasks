@@ -1,0 +1,13 @@
+scan_to_scan_filter_chain:
+  ros__parameters:
+    filter1:
+      name: angle
+      type: laser_filters/LaserScanAngularBoundsFilter
+      params:
+        lower_angle: -0.2618
+        upper_angle: 0.2618
+    filter2:
+      name: median_spatial
+      type: laser_filters/LaserScanMedianSpatialFilter
+      params:
+        window_size: 15

@@ -1,0 +1,7 @@
+scan_to_scan_filter_chain:
+  ros__parameters:
+    filter1:
+      name: median_spatial
+      type: laser_filters/LaserScanMedianSpatialFilter
+      params:
+        window_size: 15

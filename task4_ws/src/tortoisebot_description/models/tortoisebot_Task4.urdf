@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<robot name="tortoisebot">
+
+<material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.6 0.3 0.3"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.75 0.75 0.75 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.6 0.3 0.3"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.015" iyy="0.0375" izz="0.0375" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <link name="front_caster">
+    <visual>
+      <geometry>
+        <box size="0.1 0.1 0.3"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.1 0.1 0.3"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.00083" iyy="0.00083" izz="0.000167" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="front_caster_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="base_link"/>
+    <child link="front_caster"/>
+    <origin rpy="0 0 0" xyz="0.3 0 0"/>
+  </joint>
+
+  
+
+  <link name="front_wheel">
+    <visual>
+      <geometry>
+        <cylinder length="0.05" radius="0.035"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.05" radius="0.035"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="5.1458e-5" iyy="5.1458e-5" izz="6.125e-5" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="front_wheel_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="front_caster"/>
+    <child link="front_wheel"/>
+    <origin rpy="-1.5708 0 0" xyz="0.05 0 -.15"/>
+  </joint>
+
+  <link name="right_wheel">
+    <visual>
+      <geometry>
+        <cylinder length="0.05" radius="0.035"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.05" radius="0.035"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="5.1458e-5" iyy="5.1458e-5" izz="6.125e-5" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="right_wheel_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="base_link"/>
+    <child link="right_wheel"/>
+    <origin rpy="-1.5708 0 0" xyz="-0.2825 -0.125 -.15"/>
+  </joint>
+
+  <link name="left_wheel">
+    <visual>
+      <geometry>
+        <cylinder length="0.05" radius="0.035"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.05" radius="0.035"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="5.1458e-5" iyy="5.1458e-5" izz="6.125e-5" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  
+
+  <joint name="left_wheel_joint" type="continuous">
+    <axis xyz="0 0 1"/>
+    <parent link="base_link"/>
+    <child link="left_wheel"/>
+    <origin rpy="-1.5708 0 0" xyz="-0.2825 0.125 -.15"/>
+  </joint>
+
+  <!-- LIDAR Link -->
+  <link name="lidar_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.06" radius="0.035"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.06" radius="0.035"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- LIDAR Joint -->
+  <joint name="lidar_joint" type="fixed">
+    <axis xyz="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0.180"/>
+  </joint>
+
+ <!-- Robot Footprint -->
+  <link name="base_footprint"></link>
+
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0.0 0.0 0.09" rpy="0 0 0"/>
+  </joint>
+
+
+  <gazebo>
+<plugin name="gz::sim::systems::DiffDrive" filename="gz-sim-diff-drive-system">
+<left_joint>left_wheel_joint</left_joint>
+<right_joint>right_wheel_joint</right_joint>
+<max_linear_acceleration>10</max_linear_acceleration>
+<max_angular_acceleration>10</max_angular_acceleration>
+<wheel_separation>0.25</wheel_separation>
+<wheel_radius>0.035</wheel_radius>
+<odom_publish_frequency>30</odom_publish_frequency>
+<topic>cmd_vel</topic>
+<tf_topic>/tf</tf_topic>
+<publish_odom_tf>true</publish_odom_tf>
+<odom_topic>odom</odom_topic>
+<frame_id>odom</frame_id>
+<child_frame_id>base_footprint</child_frame_id>
+<odom_publisher_frequency>30</odom_publisher_frequency>
+
+</plugin>
+<plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+<topic>joint_states</topic>
+<joint_name>left_wheel_joint</joint_name>
+<joint_name>right_wheel_joint</joint_name>
+<joint_name>front_caster_joint</joint_name>
+<joint_name>front_wheel_joint</joint_name>
+</plugin>
+
+
+</gazebo>
+
+<gazebo reference="lidar_link">
+<sensor name='gpu_lidar' type='gpu_lidar'>
+    <pose relative_to='lidar_link'>0 0 0 0 0 0</pose>
+    <topic>scan</topic>
+    <gz_frame_id>lidar_link</gz_frame_id>
+    <update_rate>10</update_rate>
+    <ray>
+        <scan>
+            <horizontal>
+                <samples>720</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.14</min_angle>
+                <max_angle>3.14</max_angle>
+            </horizontal>
+            <vertical>
+                <samples>1</samples>
+                <resolution>0.01</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+            </vertical>
+        </scan>
+        <range>
+            <min>0.08</min>
+            <max>10.0</max>
+            <resolution>0.01</resolution>
+        </range>
+         <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.02</stddev>
+                </noise>
+    </ray>
+    <always_on>1</always_on>
+    <visualize>true</visualize>
+
+    <plugin name='gz::sim::systems::Sensors' filename='gz-sim-sensors-system'>
+      <render_engine>ogre2</render_engine>
+    </plugin>
+</sensor></gazebo>
+</robot>
