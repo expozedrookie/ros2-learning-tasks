@@ -1,6 +1,11 @@
 # tortoisebot-sim-tasks
 The goal of this project is to build a solid understanding of core ROS 2 principles (nodes, topics, launch files, custom packages) and their application in a realistic, simulated environment.
 
+**FINAL UPDATED CODE**
+- cd ``tbot_ws``
+- ``colcon build``
+- ``source install/setup.bash``
+
 **Common Setup**
 - Go to task<number>_ws directory -``cd task<number>_ws``
 - Build the workspace             - ``colcon build``
@@ -17,3 +22,4 @@ The goal of this project is to build a solid understanding of core ROS 2 princip
 **Task 3 - Follow a Ball Shaped Object**
 - Get to the closest object - ``ros2 launch tortoisebot_nodes ball_follower_launch.py `` (Initial Version)
 - Follow the ball - ``ros2 launch tortoisebot_nodes moving_sphere_launch.py `` 
+
